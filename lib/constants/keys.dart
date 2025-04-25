@@ -1,0 +1,2 @@
+const OPENAI_API_KEY =
+    "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";

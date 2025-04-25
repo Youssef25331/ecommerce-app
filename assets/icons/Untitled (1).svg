@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg id="svg2" viewBox="0 0 500 670" xmlns="http://www.w3.org/2000/svg">
+  <desc>Source: openclipart.org/detail/209545</desc>
+  <defs>
+    <pattern x="0" y="0" width="25" height="25" patternUnits="userSpaceOnUse" viewBox="0 0 100 100" id="pattern-0">
+      <rect x="0" y="0" width="50" height="100" style="fill: black;"/>
+    </pattern>
+    <pattern id="pattern-0-0" href="#pattern-0" patternTransform="matrix(1, 0, 0, 1, 238.592171, 351.678116)"/>
+    <pattern id="pattern-0-1" href="#pattern-0" patternTransform="matrix(1, 0, 0, 1, 327.875504, 280.681992)"/>
+  </defs>
+  <path stroke="#939393" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M 246.544 532.461 C 205.248 507.032 166.869 477.156 132.105 443.354 C 107.588 418.902 88.952 389.205 77.631 356.494 C 57.186 292.913 81.052 220.145 147.907 198.593 C 183.061 187.271 221.522 193.755 251.024 215.975 C 280.542 193.787 318.971 187.32 354.125 198.593 C 420.964 220.145 445.024 292.913 424.58 356.494 C 413.258 389.189 394.622 418.902 370.106 443.337 C 335.326 477.14 296.946 507.016 255.65 532.445 L 251.187 535.231 L 246.544 532.461 Z" clip-rule="evenodd" style="fill: url(&quot;#pattern-0-0&quot;);"/>
+  <path stroke="#939393" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M 322.163 270.172 C 342.494 276.737 356.862 294.901 358.588 316.192" style="fill: url(&quot;#pattern-0-1&quot;);"/>
+</svg>
