@@ -19,12 +19,13 @@ class _botsPageState extends State<botsPage> {
 
   List<ChatMessage> _messages = <ChatMessage>[];
   List<ChatUser> _typingUsers = <ChatUser>[];
+  int _currentKeyIndex = 0;
 
   @override
   void initState() {
     super.initState();
     OpenAI.baseUrl = 'https://openrouter.ai/api';
-    OpenAI.apiKey = OPENAI_API_KEY;
+    OpenAI.apiKey = OPENAI_API_KEY[0];
   }
 
   @override
@@ -119,14 +120,24 @@ class _botsPageState extends State<botsPage> {
     } catch (e) {
       print('Error: $e');
       setState(() {
-        _messages.insert(
-          0,
-          ChatMessage(
-            user: _chatUser,
-            createdAt: DateTime.now(),
-            text: 'Sorry, something went wrong. Please try again.',
-          ),
-        );
+        if (_currentKeyIndex < OPENAI_API_KEY.length) {
+          _currentKeyIndex += 1;
+          OpenAI.apiKey = OPENAI_API_KEY[_currentKeyIndex];
+          _messages.removeLast();
+          getChatResponse(m);
+        } else if (_currentKeyIndex == OPENAI_API_KEY.length - 1) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Error: $e")));
+          _messages.insert(
+            0,
+            ChatMessage(
+              user: _chatUser,
+              createdAt: DateTime.now(),
+              text: 'Sorry, something went wrong. Please try again.',
+            ),
+          );
+        }
 
         _typingUsers.remove(_chatUser);
       });
