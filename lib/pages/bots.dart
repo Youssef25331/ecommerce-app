@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:college_ecommerce_app/constants/app_colors.dart';
 import 'package:dart_openai/dart_openai.dart';
 import 'package:college_ecommerce_app/constants/keys.dart';
@@ -7,6 +5,8 @@ import 'package:college_ecommerce_app/models/user.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:flutter_tts/flutter_tts.dart';
 
 class botsPage extends StatefulWidget {
   const botsPage({super.key});
@@ -23,11 +23,17 @@ class _botsPageState extends State<botsPage> {
   List<ChatUser> _typingUsers = <ChatUser>[];
   int _currentKeyIndex = 0;
 
+  late stt.SpeechToText _speech;
+  late FlutterTts _tts;
+  bool _isListening = false;
+
   @override
   void initState() {
     super.initState();
     OpenAI.baseUrl = 'https://openrouter.ai/api';
     OpenAI.apiKey = OPENAI_API_KEY[0];
+    _speech = stt.SpeechToText();
+    _tts = FlutterTts();
   }
 
   @override
@@ -50,6 +56,15 @@ class _botsPageState extends State<botsPage> {
                 onPressed: send,
                 icon: Icon(Icons.send, color: AppColors.primary),
               ),
+          leading: [
+            IconButton(
+              icon: Icon(
+                _isListening ? Icons.mic : Icons.mic_none,
+                color: AppColors.primary,
+              ),
+              onPressed: _startListening,
+            ),
+          ],
         ),
         messageOptions: const MessageOptions(
           currentUserContainerColor: AppColors.primary,
@@ -63,6 +78,35 @@ class _botsPageState extends State<botsPage> {
         messages: _messages,
       ),
     );
+  }
+
+  void _startListening() async {
+    if (!_isListening) {
+      bool available = await _speech.initialize(
+        onStatus: (val) => print('onStatus: $val'),
+        onError: (val) => print('onError: $val'),
+      );
+      if (available) {
+        setState(() => _isListening = true);
+        _speech.listen(
+          onResult: (val) {
+            if (val.finalResult) {
+              String text = val.recognizedWords;
+              ChatMessage m = ChatMessage(
+                user: _currentUser,
+                createdAt: DateTime.now(),
+                text: text,
+              );
+              getChatResponse(m);
+              setState(() => _isListening = false);
+            }
+          },
+        );
+      }
+    } else {
+      setState(() => _isListening = false);
+      _speech.stop();
+    }
   }
 
   Future<void> getChatResponse(ChatMessage m) async {
@@ -113,22 +157,22 @@ class _botsPageState extends State<botsPage> {
                 text: content,
               ),
             );
+            _speak(content); // Speak the bot's response
           }
-          setState(() {
-            _typingUsers.remove(_chatUser);
-          });
+          _typingUsers.remove(_chatUser);
         }
       });
     } catch (e) {
       print('Error: $e');
       setState(() {
         if (_currentKeyIndex < OPENAI_API_KEY.length) {
+          print(_currentKeyIndex);
+          print(OPENAI_API_KEY.length);
           _currentKeyIndex += 1;
           OpenAI.apiKey = OPENAI_API_KEY[_currentKeyIndex - 1];
           _messages.removeLast();
           getChatResponse(m);
-        }
-        if (_currentKeyIndex == OPENAI_API_KEY.length) {
+        } else if (_currentKeyIndex == OPENAI_API_KEY.length) {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text("Error: $e")));
@@ -141,10 +185,13 @@ class _botsPageState extends State<botsPage> {
             ),
           );
         }
-
         _typingUsers.remove(_chatUser);
       });
     }
+  }
+
+  void _speak(String text) async {
+    await _tts.speak(text);
   }
 }
 
@@ -180,7 +227,6 @@ class mainBottomBar extends StatelessWidget {
                   'Home',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-
                     color: AppColors.secondary,
                     fontSize: 14,
                   ),
@@ -188,7 +234,6 @@ class mainBottomBar extends StatelessWidget {
               ],
             ),
           ),
-
           InkWell(
             onTap: () {
               Navigator.pushReplacementNamed(
@@ -277,7 +322,6 @@ AppBar botsAppBar() {
       children: [
         Text(
           'Bots',
-
           textAlign: TextAlign.center,
           style: TextStyle(
             fontWeight: FontWeight.bold,
