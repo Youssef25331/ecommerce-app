@@ -22,6 +22,7 @@ class _botsPageState extends State<botsPage> {
   List<ChatMessage> _messages = <ChatMessage>[];
   List<ChatUser> _typingUsers = <ChatUser>[];
   int _currentKeyIndex = 0;
+  String? _customApiKey;
 
   late stt.SpeechToText _speech;
   late FlutterTts _tts;
@@ -37,7 +38,127 @@ class _botsPageState extends State<botsPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  void dispose() {
+    _speech.cancel();
+    _tts.stop();
+    super.dispose();
+  }
+
+  void _startListening() async {
+    try {
+      await _speech.cancel();
+
+      bool available = await _speech.initialize(
+        onStatus: (status) {
+          print('Speech status: $status');
+          setState(() {
+            _isListening = status == 'listening';
+          });
+        },
+        onError: (error) {
+          print('Speech error: $error');
+          setState(() {
+            _isListening = false;
+          });
+          if (error.errorMsg == 'error_no_match') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('No speech recognized. Please try again.'),
+              ),
+            );
+          }
+        },
+      );
+
+      if (available) {
+        _speech.listen(
+          onResult: (result) {
+            if (result.finalResult) {
+              String text = result.recognizedWords;
+              if (text.isNotEmpty) {
+                ChatMessage message = ChatMessage(
+                  user: _currentUser,
+                  createdAt: DateTime.now(),
+                  text: text,
+                  customProperties: {'isVoice': true},
+                );
+                getChatResponse(message);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('No speech recognized. Please try again.'),
+                  ),
+                );
+              }
+            }
+          },
+          listenFor: Duration(seconds: 10),
+        );
+      } else {
+        print('Speech initialization failed');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Speech recognition unavailable.')),
+        );
+      }
+    } catch (e) {
+      print('Exception during speech initialization: $e');
+    }
+  }
+
+  void _stopListening() {
+    _speech.stop();
+  }
+
+  // Show dialog to input custom API key
+  void _showApiKeyDialog() {
+    final TextEditingController controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Enter Your API Key'),
+            content: TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: 'Paste your OpenAI API key here',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  final key = controller.text.trim();
+                  if (key.isNotEmpty) {
+                    setState(() {
+                      _customApiKey = key;
+                      OpenAI.apiKey = key;
+                      _currentKeyIndex = 0;
+                    });
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Custom API key set successfully.'),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Please enter a valid API key.')),
+                    );
+                  }
+                },
+                child: Text('Save'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  @override
+  Widget build(context) {
     final user = ModalRoute.of(context)!.settings.arguments as User;
 
     _currentUser.id = user.id;
@@ -45,7 +166,30 @@ class _botsPageState extends State<botsPage> {
 
     return Scaffold(
       bottomNavigationBar: mainBottomBar(),
-      appBar: botsAppBar(),
+      appBar: AppBar(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Bots',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings, color: AppColors.textSecondary),
+            onPressed: () {
+              _showApiKeyDialog();
+            },
+          ),
+        ],
+      ),
       body: DashChat(
         currentUser: _currentUser,
         typingUsers: _typingUsers,
@@ -62,7 +206,13 @@ class _botsPageState extends State<botsPage> {
                 _isListening ? Icons.mic : Icons.mic_none,
                 color: AppColors.primary,
               ),
-              onPressed: _startListening,
+              onPressed: () {
+                if (_isListening) {
+                  _stopListening();
+                } else {
+                  _startListening();
+                }
+              },
             ),
           ],
         ),
@@ -80,36 +230,9 @@ class _botsPageState extends State<botsPage> {
     );
   }
 
-  void _startListening() async {
-    if (!_isListening) {
-      bool available = await _speech.initialize(
-        onStatus: (val) => print('onStatus: $val'),
-        onError: (val) => print('onError: $val'),
-      );
-      if (available) {
-        setState(() => _isListening = true);
-        _speech.listen(
-          onResult: (val) {
-            if (val.finalResult) {
-              String text = val.recognizedWords;
-              ChatMessage m = ChatMessage(
-                user: _currentUser,
-                createdAt: DateTime.now(),
-                text: text,
-              );
-              getChatResponse(m);
-              setState(() => _isListening = false);
-            }
-          },
-        );
-      }
-    } else {
-      setState(() => _isListening = false);
-      _speech.stop();
-    }
-  }
-
   Future<void> getChatResponse(ChatMessage m) async {
+    bool isVoiceInput = m.customProperties?['isVoice'] ?? false;
+
     setState(() {
       _messages.insert(0, m);
       _typingUsers.add(_chatUser);
@@ -157,7 +280,9 @@ class _botsPageState extends State<botsPage> {
                 text: content,
               ),
             );
-            _speak(content); // Speak the bot's response
+            if (isVoiceInput) {
+              _speak(content);
+            }
           }
           _typingUsers.remove(_chatUser);
         }
@@ -165,14 +290,28 @@ class _botsPageState extends State<botsPage> {
     } catch (e) {
       print('Error: $e');
       setState(() {
-        if (_currentKeyIndex < OPENAI_API_KEY.length) {
+        // If using custom key, don't cycle through saved keys
+        if (_customApiKey != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error with custom API key: $e")),
+          );
+          _messages.insert(
+            0,
+            ChatMessage(
+              user: _chatUser,
+              createdAt: DateTime.now(),
+              text:
+                  'Sorry, something went wrong with your API key. Please check and try again.',
+            ),
+          );
+        } else if (_currentKeyIndex < OPENAI_API_KEY.length) {
           print(_currentKeyIndex);
           print(OPENAI_API_KEY.length);
           _currentKeyIndex += 1;
           OpenAI.apiKey = OPENAI_API_KEY[_currentKeyIndex - 1];
           _messages.removeLast();
           getChatResponse(m);
-        } else if (_currentKeyIndex == OPENAI_API_KEY.length) {
+        } else {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text("Error: $e")));
@@ -313,23 +452,4 @@ class mainBottomBar extends StatelessWidget {
       ),
     );
   }
-}
-
-AppBar botsAppBar() {
-  return AppBar(
-    title: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          'Bots',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ],
-    ),
-  );
 }

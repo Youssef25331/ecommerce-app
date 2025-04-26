@@ -262,6 +262,7 @@ class _ProductsSliderState extends State<ProductsSlider> {
                                       errorBuilder:
                                           (
                                             context,
+
                                             error,
                                             stackTrace,
                                           ) => Image.asset(
