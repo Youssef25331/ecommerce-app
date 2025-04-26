@@ -120,8 +120,7 @@ class _LoginHandlerState extends State<LoginHandler> {
                           contentPadding: const EdgeInsets.only(top: 6),
                           isDense: true,
                           errorStyle: TextStyle(
-                            color:
-                                AppColors.error, // Use your app's error color
+                            color: AppColors.error,
                             fontSize: 12,
                           ),
                         ),
@@ -173,7 +172,7 @@ class _LoginHandlerState extends State<LoginHandler> {
                           child: TextFormField(
                             controller: _passwordController,
                             obscureText: _obscureText,
-                            style: const TextStyle(fontSize: 13),
+                            style: const TextStyle(fontSize: 14),
                             decoration: InputDecoration(
                               hintText: 'Password',
                               border: InputBorder.none,

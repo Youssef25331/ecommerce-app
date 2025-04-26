@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:college_ecommerce_app/constants/app_colors.dart';
 import 'package:dart_openai/dart_openai.dart';
 import 'package:college_ecommerce_app/constants/keys.dart';
@@ -122,10 +124,11 @@ class _botsPageState extends State<botsPage> {
       setState(() {
         if (_currentKeyIndex < OPENAI_API_KEY.length) {
           _currentKeyIndex += 1;
-          OpenAI.apiKey = OPENAI_API_KEY[_currentKeyIndex];
+          OpenAI.apiKey = OPENAI_API_KEY[_currentKeyIndex - 1];
           _messages.removeLast();
           getChatResponse(m);
-        } else if (_currentKeyIndex == OPENAI_API_KEY.length - 1) {
+        }
+        if (_currentKeyIndex == OPENAI_API_KEY.length) {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text("Error: $e")));
@@ -216,12 +219,20 @@ class mainBottomBar extends StatelessWidget {
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SvgPicture.asset(
-                'assets/icons/Light_Container.svg',
-
-                color: AppColors.secondary,
-                width: 32.0,
-                height: 32.0,
+              InkWell(
+                onTap: () {
+                  Navigator.pushReplacementNamed(
+                    context,
+                    '/sell',
+                    arguments: user,
+                  );
+                },
+                child: SvgPicture.asset(
+                  'assets/icons/Light_Container.svg',
+                  color: AppColors.secondary,
+                  width: 32.0,
+                  height: 32.0,
+                ),
               ),
               Text(
                 'Sell',

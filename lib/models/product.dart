@@ -7,10 +7,10 @@ class Product {
   final String details;
   final String seller;
   final String price;
-  final String imagePath;
   final String sellerProfile;
   final String sellerLocation;
   final String category;
+  String imagePath;
 
   Product({
     String? id,

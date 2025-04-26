@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:college_ecommerce_app/constants/app_colors.dart';
+import 'package:college_ecommerce_app/controllers/product_service.dart';
+import 'package:college_ecommerce_app/models/product.dart';
 import 'package:college_ecommerce_app/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -13,7 +15,16 @@ class sellPage extends StatefulWidget {
 }
 
 class _sellPageState extends State<sellPage> {
+  final categories = ['Apparel', 'School', 'Sports', 'Electronics'];
+  final _validationKey = GlobalKey<FormState>();
+  final _productService = ProductService();
   File? _selectedImage;
+  bool imageError = false;
+  String dropdownValue = 'Apparel';
+
+  final _nameController = TextEditingController();
+  final _detailsController = TextEditingController();
+  final _priceController = TextEditingController();
 
   Future<void> _pickImage() async {
     try {
@@ -23,10 +34,6 @@ class _sellPageState extends State<sellPage> {
       if (image != null) {
         setState(() {
           _selectedImage = File(image.path);
-
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Failed to pick image: ')));
         });
       }
     } catch (e) {
@@ -39,46 +46,339 @@ class _sellPageState extends State<sellPage> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ModalRoute.of(context)!.settings.arguments as User;
     return Scaffold(
       appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            InkWell(
-              onTap: () {
-                _pickImage();
-              },
-
-              child: Text(
-                'Sell Product',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-              ),
+            Text(
+              'Sell Product',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
           ],
         ),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Category'),
-          Container(
-            height: 100,
-            width: 100,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              image: DecorationImage(
-                image:
-                    _selectedImage != null
-                        ? FileImage(_selectedImage!)
-                        : const AssetImage("assets/images/Menu_Banner_1.png")
-                            as ImageProvider,
-                fit: BoxFit.cover,
-              ),
+      body: SingleChildScrollView(
+        child: Form(
+          key: _validationKey,
+          child: Container(
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Category'),
+                    SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(color: AppColors.thickEdges),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(color: AppColors.thickEdges),
+                        ),
+                      ),
+                      isExpanded: true,
+                      value: dropdownValue,
+                      style: TextStyle(color: AppColors.textSecondary),
+                      onChanged: (String? value) {
+                        setState(() {
+                          dropdownValue = value!;
+                        });
+                      },
+                      items:
+                          categories.map<DropdownMenuItem<String>>((
+                            String value,
+                          ) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Product\'s name',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+
+                    SizedBox(height: 8),
+                    TextFormField(
+                      controller: _nameController,
+                      cursorColor: AppColors.textSecondary,
+                      style: TextStyle(fontSize: 10),
+                      decoration: InputDecoration(
+                        hintText: 'Enter the product\'s name',
+                        fillColor: Colors.black,
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(color: AppColors.thickEdges),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(color: AppColors.thickEdges),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(color: AppColors.thickEdges),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter product name';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                FormField(
+                  validator: (value) {
+                    if (_selectedImage == null) {
+                      setState(() {
+                        imageError = true;
+                      });
+                    }
+                    if (_selectedImage != null) {
+                      setState(() {
+                        imageError = false;
+                      });
+                    }
+                    return null;
+                  },
+                  builder: (FormFieldState) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 190,
+                          width: double.infinity,
+
+                          child: InkWell(
+                            onTap: () {
+                              _pickImage();
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: AppColors.thickEdges.withAlpha(200),
+                              ),
+                              margin: EdgeInsets.symmetric(
+                                horizontal: 110,
+                                vertical: 50,
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SvgPicture.asset(
+                                    'assets/icons/Light_Upload.svg',
+                                    color: AppColors.textSecondary,
+                                  ),
+                                  Text(
+                                    _selectedImage != null
+                                        ? "Change Image"
+                                        : 'Upload Image',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              width: 1,
+                              color: AppColors.thickEdges,
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                            image: DecorationImage(
+                              fit: BoxFit.cover,
+                              image:
+                                  _selectedImage != null
+                                      ? FileImage(File(_selectedImage!.path))
+                                      : FileImage(File("")),
+                            ),
+                          ),
+                        ),
+
+                        Offstage(
+                          offstage: !imageError,
+                          child: Text(
+                            'Please select a png',
+                            style: TextStyle(
+                              color: AppColors.error,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+
+                SizedBox(height: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Price',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    TextFormField(
+                      controller: _priceController,
+                      cursorColor: AppColors.textSecondary,
+                      style: TextStyle(fontSize: 10),
+                      decoration: InputDecoration(
+                        hintText: 'Enter price, eg. 40, 200',
+                        fillColor: Colors.black,
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(color: AppColors.thickEdges),
+                        ),
+
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(color: AppColors.thickEdges),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(color: AppColors.thickEdges),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter product\'s price';
+                        }
+                        if (int.tryParse(value) == null) {
+                          return 'Price can only be a number';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Details',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    TextFormField(
+                      controller: _detailsController,
+                      cursorColor: AppColors.textSecondary,
+                      style: TextStyle(fontSize: 10),
+                      maxLines: null,
+                      decoration: InputDecoration(
+                        hintText:
+                            'Enter all releveant information about ur product',
+                        fillColor: Colors.black,
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(color: AppColors.thickEdges),
+                        ),
+
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(color: AppColors.thickEdges),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(color: AppColors.thickEdges),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter the prodcut\'s details';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      style: ButtonStyle(
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        backgroundColor: WidgetStateProperty.all(
+                          AppColors.primary,
+                        ),
+                      ),
+                      onPressed: () async {
+                        if (_validationKey.currentState!.validate() &&
+                            !imageError) {
+                          final newProduct = Product(
+                            name: _nameController.text,
+                            seller: user.name,
+                            price: "EGP " + _priceController.text.toString(),
+                            details: _detailsController.text,
+                            imagePath: _selectedImage!.path,
+                            category: dropdownValue,
+                            sellerProfile:
+                                'assets/images/profiles/Profile_Main.png',
+                            sellerLocation: 'Alexandria, Egypt',
+                          );
+                          print(newProduct);
+                          final _products =
+                              await _productService.readProducts();
+                          _products.insert(0, newProduct);
+
+                          await _productService.writeProducts(
+                            _products,
+                            _selectedImage!,
+                          );
+                          print('product added successfully');
+                        }
+                      },
+                      child: Text(
+                        'Add Product',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          Text('Price'),
-          Text('Details'),
-        ],
+        ),
       ),
       bottomNavigationBar: sellPageNav(),
     );
@@ -94,7 +394,7 @@ class sellPageNav extends StatelessWidget {
     return Container(
       height: 120,
       decoration: BoxDecoration(
-        border: Border.all(width: 1),
+        border: Border.all(width: 1, color: AppColors.edges),
         color: AppColors.background,
       ),
       child: Row(
@@ -108,7 +408,8 @@ class sellPageNav extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SvgPicture.asset(
-                  'assets/icons/Full_Home.svg',
+                  'assets/icons/Light_Home.svg',
+                  color: AppColors.secondary,
                   width: 32.0,
                   height: 32.0,
                 ),
@@ -116,7 +417,8 @@ class sellPageNav extends StatelessWidget {
                   'Home',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+
+                    color: AppColors.secondary,
                     fontSize: 14,
                   ),
                 ),
@@ -137,7 +439,6 @@ class sellPageNav extends StatelessWidget {
               children: [
                 SvgPicture.asset(
                   'assets/icons/Light_Heart.svg',
-                  color: Colors.black,
                   width: 32.0,
                   height: 32.0,
                 ),
@@ -145,40 +446,35 @@ class sellPageNav extends StatelessWidget {
                   'Wishlist',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: AppColors.secondary,
                     fontSize: 14,
                   ),
                 ),
               ],
             ),
           ),
-          InkWell(
-            onTap: () {
-              Navigator.pushReplacementNamed(
-                context,
-                '/sell',
-                arguments: [user, true],
-              );
-            },
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SvgPicture.asset(
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              InkWell(
+                onTap: () {},
+                child: SvgPicture.asset(
                   'assets/icons/Light_Container.svg',
-                  color: Colors.black,
+                  color: AppColors.primary,
                   width: 32.0,
                   height: 32.0,
                 ),
-                Text(
-                  'Sell',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 14,
-                  ),
+              ),
+              Text(
+                'Sell',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+
+                  color: AppColors.primary,
+                  fontSize: 14,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
           InkWell(
             onTap: () {
@@ -190,7 +486,8 @@ class sellPageNav extends StatelessWidget {
               children: [
                 SvgPicture.asset(
                   'assets/icons/Light_Bot.svg',
-                  color: Colors.black,
+
+                  color: AppColors.secondary,
                   width: 32.0,
                   height: 32.0,
                 ),
@@ -198,7 +495,8 @@ class sellPageNav extends StatelessWidget {
                   'Bots',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+
+                    color: AppColors.secondary,
                     fontSize: 14,
                   ),
                 ),

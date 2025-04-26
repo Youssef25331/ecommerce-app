@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:college_ecommerce_app/constants/app_colors.dart';
 import 'package:college_ecommerce_app/controllers/product_service.dart';
 import 'package:college_ecommerce_app/models/product.dart';
@@ -250,19 +252,43 @@ class _ProductsSliderState extends State<ProductsSlider> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(6),
-                            child: Image.asset(
-                              product.imagePath,
-                              fit: BoxFit.cover,
-                              height: 120,
-                              width: double.infinity,
-                              errorBuilder:
-                                  (context, error, stackTrace) => Image.asset(
-                                    'assets/images/Monitor_Item.png',
-                                    fit: BoxFit.cover,
-                                    height: 120,
-                                    width: double.infinity,
-                                  ),
-                            ),
+                            child:
+                                product.imagePath.split('/')[0] == "assets"
+                                    ? Image.asset(
+                                      product.imagePath,
+                                      fit: BoxFit.cover,
+                                      height: 120,
+                                      width: double.infinity,
+                                      errorBuilder:
+                                          (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                          ) => Image.asset(
+                                            'assets/images/Monitor_Item.png',
+                                            fit: BoxFit.cover,
+                                            height: 120,
+                                            width: double.infinity,
+                                          ),
+                                    )
+                                    : Image.file(
+                                      File(product.imagePath),
+                                      fit: BoxFit.cover,
+
+                                      height: 120,
+                                      width: double.infinity,
+                                      errorBuilder:
+                                          (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                          ) => Image.asset(
+                                            'assets/images/Monitor_Item.png',
+                                            fit: BoxFit.cover,
+                                            height: 120,
+                                            width: double.infinity,
+                                          ),
+                                    ),
                           ),
                           Padding(
                             padding: const EdgeInsets.only(left: 13, top: 13),

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:college_ecommerce_app/constants/app_colors.dart';
 import 'package:college_ecommerce_app/models/product.dart';
 import 'package:college_ecommerce_app/models/user.dart';
@@ -92,7 +94,10 @@ class _detailsPageState extends State<detailsPage> {
             Container(
               width: double.infinity,
               height: 300,
-              child: Image.asset(product.imagePath, fit: BoxFit.cover),
+              child:
+                  product.imagePath.split('/')[0] == "assets"
+                      ? Image.asset(product.imagePath, fit: BoxFit.cover)
+                      : Image.file(File(product.imagePath), fit: BoxFit.cover),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),

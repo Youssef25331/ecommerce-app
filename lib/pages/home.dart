@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:college_ecommerce_app/constants/app_colors.dart';
 import 'package:college_ecommerce_app/models/user.dart';
 import 'package:flutter/material.dart';
@@ -683,7 +685,7 @@ class _productsSliderState extends State<productsSlider> {
       setState(() {
         _products.add(newProduct);
       });
-      await _productService.writeProducts(_products);
+      await _productService.writeProducts(_products, File('path'));
     }
   }
 
@@ -746,6 +748,7 @@ class _productsSliderState extends State<productsSlider> {
           ),
           SizedBox(height: 13),
           GridView.builder(
+            reverse: false,
             physics: NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
@@ -788,10 +791,17 @@ class _productsSliderState extends State<productsSlider> {
                         height: 120,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(6),
-                          child: Image.asset(
-                            _products[index].imagePath,
-                            fit: BoxFit.cover,
-                          ),
+                          child:
+                              _products[index].imagePath.split('/')[0] ==
+                                      "assets"
+                                  ? Image.asset(
+                                    _products[index].imagePath,
+                                    fit: BoxFit.cover,
+                                  )
+                                  : Image.file(
+                                    File(_products[index].imagePath),
+                                    fit: BoxFit.cover,
+                                  ),
                         ),
                       ),
                       Padding(
@@ -837,7 +847,7 @@ class _productsSliderState extends State<productsSlider> {
                                   },
                                   child: Ink(
                                     padding: EdgeInsets.symmetric(
-                                      horizontal: _inWishlist ? 46 : 27,
+                                      horizontal: _inWishlist ? 41 : 22,
                                       vertical: 8,
                                     ),
                                     decoration: BoxDecoration(

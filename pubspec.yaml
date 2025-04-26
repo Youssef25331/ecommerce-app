@@ -41,6 +41,7 @@ dependencies:
   dash_chat_2: ^0.0.21  
   dart_openai: ^5.1.0
   image_picker: ^1.1.2
+  dropdown_search: ^6.0.2
 
 dev_dependencies:
   flutter_test:
