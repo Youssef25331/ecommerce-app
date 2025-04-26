@@ -8,45 +8,21 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:college_ecommerce_app/models/product.dart';
 import 'package:college_ecommerce_app/controllers/product_service.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class homePage extends StatefulWidget {
+  const homePage({super.key});
+
+  @override
+  State<homePage> createState() => _homePageState();
+}
+
+class _homePageState extends State<homePage> {
   @override
   Widget build(BuildContext context) {
     final user = ModalRoute.of(context)!.settings.arguments as User;
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 20,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Delivery Address',
-              style: TextStyle(color: const Color(0xFFC8C8CB), fontSize: 10),
-            ),
-            Row(
-              children: [
-                Text(
-                  'Alexandria, Egypt',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: SvgPicture.asset(
-                    'assets/icons/Light_Drop_Down_Arrow.svg',
-                    color: AppColors.textSecondary,
-                    height: 12.0,
-                    width: 12.0,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+        title: AddressSelection(), // Replaced with interactive widget
         actions: [
           InkWell(
             borderRadius: BorderRadius.circular(30),
@@ -169,7 +145,6 @@ class HomePage extends StatelessWidget {
                               ],
                             ),
                           ),
-
                           InkWell(
                             borderRadius: BorderRadius.circular(8),
                             onTap: () {
@@ -210,7 +185,6 @@ class HomePage extends StatelessWidget {
                                 arguments: ['sports', user, true],
                               );
                             },
-
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -267,26 +241,66 @@ class HomePage extends StatelessWidget {
                               ],
                             ),
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: Color(0xFFE9FFF8),
-                                  borderRadius: BorderRadius.circular(8),
+                          InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder:
+                                      (
+                                        context,
+                                        animation,
+                                        secondaryAnimation,
+                                      ) => CategorySelectionPage(user: user),
+                                  transitionsBuilder: (
+                                    context,
+                                    animation,
+                                    secondaryAnimation,
+                                    child,
+                                  ) {
+                                    const begin = Offset(
+                                      1.0,
+                                      0.0,
+                                    ); // Slide from right
+                                    const end = Offset.zero;
+                                    const curve = Curves.easeInOut;
+                                    var tween = Tween(
+                                      begin: begin,
+                                      end: end,
+                                    ).chain(CurveTween(curve: curve));
+                                    var offsetAnimation = animation.drive(
+                                      tween,
+                                    );
+                                    return SlideTransition(
+                                      position: offsetAnimation,
+                                      child: child,
+                                    );
+                                  },
                                 ),
-                                child: Center(
-                                  child: SvgPicture.asset(
-                                    'assets/icons/categories/Category.svg',
-                                    width: 32,
-                                    height: 32,
+                              );
+                            },
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFFE9FFF8),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Center(
+                                    child: SvgPicture.asset(
+                                      'assets/icons/categories/Category.svg',
+                                      width: 32,
+                                      height: 32,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              Text('All', style: TextStyle(fontSize: 12)),
-                            ],
+                                Text('All', style: TextStyle(fontSize: 12)),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -381,129 +395,208 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Padding categoryBar() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 16, left: 20, right: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+// Address Selection Widget
+class AddressSelection extends StatefulWidget {
+  const AddressSelection({super.key});
+
+  @override
+  State<AddressSelection> createState() => _AddressSelectionState();
+}
+
+class _AddressSelectionState extends State<AddressSelection> {
+  String _selectedCity = 'Alexandria, Egypt';
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Delivery Address',
+          style: TextStyle(color: const Color(0xFFC8C8CB), fontSize: 10),
+        ),
+        FittedBox(
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder:
+                      (context, animation, secondaryAnimation) =>
+                          CitySelectionPage(
+                            onCitySelected: (city) {
+                              setState(() {
+                                _selectedCity = city;
+                              });
+                            },
+                          ),
+                  transitionsBuilder: (
+                    context,
+                    animation,
+                    secondaryAnimation,
+                    child,
+                  ) {
+                    const begin = Offset(1.0, 0.0); // Slide from right
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOut;
+                    var tween = Tween(
+                      begin: begin,
+                      end: end,
+                    ).chain(CurveTween(curve: curve));
+                    var offsetAnimation = animation.drive(tween);
+                    return SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    );
+                  },
+                ),
+              );
+            },
+            child: Row(
+              children: [
+                Text(
+                  _selectedCity,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: SvgPicture.asset(
+                    'assets/icons/Light_Drop_Down_Arrow.svg',
+                    color: AppColors.textSecondary,
+                    height: 12.0,
+                    width: 12.0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class CitySelectionPage extends StatefulWidget {
+  final Function(String) onCitySelected;
+
+  const CitySelectionPage({super.key, required this.onCitySelected});
+
+  @override
+  State<CitySelectionPage> createState() => _CitySelectionPageState();
+}
+
+class _CitySelectionPageState extends State<CitySelectionPage> {
+  final TextEditingController _searchController = TextEditingController();
+  List<String> _allCities = [
+    'Alexandria, Egypt',
+    'Cairo, Egypt',
+    'Giza, Egypt',
+    'Luxor, Egypt',
+    'Aswan, Egypt',
+    'Hurghada, Egypt',
+    'Sharm El Sheikh, Egypt',
+    'Mansoura, Egypt',
+    'Tanta, Egypt',
+    'Port Said, Egypt',
+    'Suez, Egypt',
+    'Ismailia, Egypt',
+    'Fayoum, Egypt',
+    'Minya, Egypt',
+    'Assiut, Egypt',
+  ];
+  List<String> _filteredCities = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredCities = _allCities;
+    _searchController.addListener(_filterCities);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterCities() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredCities =
+          _allCities
+              .where((city) => city.toLowerCase().contains(query))
+              .toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Select City',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.textSecondary),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Column(
         children: [
-          Text('Category', style: TextStyle(fontSize: 14)),
           Padding(
-            padding: const EdgeInsets.only(top: 13),
-            child: Padding(
-              padding: const EdgeInsets.only(left: 4, right: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.grey,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: Image.asset(
-                            'assets/icons/categories/Fashion.png',
-                            width: 32,
-                            height: 32,
-                          ),
-                        ),
-                      ),
-                      Text('Apparel', style: TextStyle(fontSize: 12)),
-                    ],
-                  ),
-
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.grey,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: Image.asset(
-                            'assets/icons/categories/School.png',
-                            width: 32,
-                            height: 32,
-                          ),
-                        ),
-                      ),
-                      Text('School', style: TextStyle(fontSize: 12)),
-                    ],
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.grey,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: Image.asset(
-                            'assets/icons/categories/Sports.png',
-                            width: 32,
-                            height: 32,
-                          ),
-                        ),
-                      ),
-                      Text('Sports', style: TextStyle(fontSize: 12)),
-                    ],
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.grey,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: Image.asset(
-                            'assets/icons/categories/Electronics.png',
-                            width: 32,
-                            height: 32,
-                          ),
-                        ),
-                      ),
-                      Text('Electronics', style: TextStyle(fontSize: 12)),
-                    ],
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.green[100],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: SvgPicture.asset(
-                            'assets/icons/categories/Category.svg',
-                            width: 32,
-                            height: 32,
-                          ),
-                        ),
-                      ),
-                      Text('All', style: TextStyle(fontSize: 12)),
-                    ],
-                  ),
-                ],
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search for a city',
+                prefixIcon: SvgPicture.asset(
+                  'assets/icons/Light_Search.svg',
+                  color: AppColors.secondary,
+                ),
+                contentPadding: EdgeInsets.all(12),
+                prefixIconConstraints: BoxConstraints(maxHeight: 24),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide(color: AppColors.thickEdges),
+                ),
               ),
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _filteredCities.length,
+              itemBuilder: (context, index) {
+                final city = _filteredCities[index];
+                return ListTile(
+                  title: Text(
+                    city,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  onTap: () {
+                    widget.onCitySelected(city);
+                    Navigator.pop(context);
+                  },
+                );
+              },
             ),
           ),
         ],
@@ -546,7 +639,6 @@ class mainMenuNav extends StatelessWidget {
               ),
             ],
           ),
-
           InkWell(
             onTap: () {
               Navigator.pushReplacementNamed(
@@ -584,7 +676,6 @@ class mainMenuNav extends StatelessWidget {
               children: [
                 SvgPicture.asset(
                   'assets/icons/Light_Container.svg',
-
                   color: AppColors.secondary,
                   width: 32.0,
                   height: 32.0,
@@ -611,7 +702,6 @@ class mainMenuNav extends StatelessWidget {
                 SvgPicture.asset(
                   'assets/icons/Light_Bot.svg',
                   color: AppColors.secondary,
-
                   width: 32.0,
                   height: 32.0,
                 ),
@@ -654,7 +744,6 @@ class _productsSliderState extends State<productsSlider> {
     final products = await _productService.readProducts();
     setState(() {
       _products = products;
-
       if (_products.isEmpty) {
         _productService.fillProducts();
         _loadProducts();
@@ -662,7 +751,6 @@ class _productsSliderState extends State<productsSlider> {
     });
   }
 
-  // ignore: unused_element
   Future<void> _addProduct() async {
     final name = 'hii';
     final seller = 'hii';
@@ -714,21 +802,50 @@ class _productsSliderState extends State<productsSlider> {
                   color: AppColors.textSecondary,
                 ),
               ),
-
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.edges),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 6,
+              InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder:
+                          (context, animation, secondaryAnimation) =>
+                              CategorySelectionPage(user: user),
+                      transitionsBuilder: (
+                        context,
+                        animation,
+                        secondaryAnimation,
+                        child,
+                      ) {
+                        const begin = Offset(1.0, 0.0); // Slide from right
+                        const end = Offset.zero;
+                        const curve = Curves.easeInOut;
+                        var tween = Tween(
+                          begin: begin,
+                          end: end,
+                        ).chain(CurveTween(curve: curve));
+                        var offsetAnimation = animation.drive(tween);
+                        return SlideTransition(
+                          position: offsetAnimation,
+                          child: child,
+                        );
+                      },
+                    ),
+                  );
+                },
+                child: Ink(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.edges),
                   ),
-                  child: Row(
-                    children: [
-                      InkWell(
-                        child: Text(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
                           "Filters",
                           style: TextStyle(
                             fontSize: 14,
@@ -736,13 +853,14 @@ class _productsSliderState extends State<productsSlider> {
                             color: AppColors.textSecondary,
                           ),
                         ),
-                      ),
-                      SizedBox(width: 14),
-                      SvgPicture.asset(
-                        'assets/icons/Light_Filter.svg',
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
+
+                        SizedBox(width: 14),
+                        SvgPicture.asset(
+                          'assets/icons/Light_Filter.svg',
+                          color: AppColors.textSecondary,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -784,7 +902,7 @@ class _productsSliderState extends State<productsSlider> {
                     ],
                   ),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min, // Fit content vertically
+                    mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -818,7 +936,6 @@ class _productsSliderState extends State<productsSlider> {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontFamily: 'arial',
-
                                 color: AppColors.textSecondary,
                               ),
                             ),
@@ -882,6 +999,62 @@ class _productsSliderState extends State<productsSlider> {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class CategorySelectionPage extends StatelessWidget {
+  final User user;
+
+  const CategorySelectionPage({super.key, required this.user});
+
+  final List<String> _allCategories = const [
+    'Apparel',
+    'School',
+    'Sports',
+    'Electronics',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Select Category',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.textSecondary),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: ListView.builder(
+        itemCount: _allCategories.length,
+        itemBuilder: (context, index) {
+          final category = _allCategories[index];
+          return ListTile(
+            title: Text(
+              category,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
+            ),
+            onTap: () {
+              Navigator.pop(context); // Close the selection page
+              Navigator.pushNamed(
+                context,
+                '/search',
+                arguments: [category.toLowerCase(), user, true],
+              );
+            },
+          );
+        },
       ),
     );
   }

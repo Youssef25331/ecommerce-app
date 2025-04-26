@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:college_ecommerce_app/constants/app_colors.dart';
 import 'package:college_ecommerce_app/controllers/product_service.dart';
 import 'package:college_ecommerce_app/models/product.dart';
@@ -123,7 +125,13 @@ class _wishlistPageState extends State<wishlistPage> {
                       topLeft: Radius.circular(4),
                       bottomLeft: Radius.circular(4),
                     ),
-                    child: Image.asset(product.imagePath, fit: BoxFit.cover),
+                    child:
+                        product.imagePath.split('/')[0] == "assets"
+                            ? Image.asset(product.imagePath, fit: BoxFit.cover)
+                            : Image.file(
+                              File(product.imagePath),
+                              fit: BoxFit.cover,
+                            ),
                   ),
                 ),
                 Padding(

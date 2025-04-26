@@ -167,8 +167,12 @@ class _botsPageState extends State<botsPage> {
     return Scaffold(
       bottomNavigationBar: mainBottomBar(),
       appBar: AppBar(
+        leading: Icon(Icons.settings, color: Colors.transparent),
+
+        automaticallyImplyLeading: true,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
+
           children: [
             Text(
               'Bots',

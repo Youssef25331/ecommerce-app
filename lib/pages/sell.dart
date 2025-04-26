@@ -21,6 +21,7 @@ class _sellPageState extends State<sellPage> {
   File? _selectedImage;
   bool imageError = false;
   String dropdownValue = 'Apparel';
+  String _selectedCity = 'Alexandria, Egypt'; // Default city
 
   final _nameController = TextEditingController();
   final _detailsController = TextEditingController();
@@ -70,7 +71,14 @@ class _sellPageState extends State<sellPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Category'),
+                    Text(
+                      'Category',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                     SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       decoration: InputDecoration(
@@ -115,7 +123,6 @@ class _sellPageState extends State<sellPage> {
                         color: AppColors.textSecondary,
                       ),
                     ),
-
                     SizedBox(height: 8),
                     TextFormField(
                       controller: _nameController,
@@ -168,7 +175,6 @@ class _sellPageState extends State<sellPage> {
                         Container(
                           height: 190,
                           width: double.infinity,
-
                           child: InkWell(
                             onTap: () {
                               _pickImage();
@@ -218,7 +224,6 @@ class _sellPageState extends State<sellPage> {
                             ),
                           ),
                         ),
-
                         Offstage(
                           offstage: !imageError,
                           child: Text(
@@ -233,8 +238,89 @@ class _sellPageState extends State<sellPage> {
                     );
                   },
                 ),
-
                 SizedBox(height: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Location',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    CitySelectionPage(
+                                      onCitySelected: (city) {
+                                        setState(() {
+                                          _selectedCity = city;
+                                        });
+                                      },
+                                    ),
+                            transitionsBuilder: (
+                              context,
+                              animation,
+                              secondaryAnimation,
+                              child,
+                            ) {
+                              const begin = Offset(
+                                1.0,
+                                0.0,
+                              ); // Slide from right
+                              const end = Offset.zero;
+                              const curve = Curves.easeInOut;
+                              var tween = Tween(
+                                begin: begin,
+                                end: end,
+                              ).chain(CurveTween(curve: curve));
+                              var offsetAnimation = animation.drive(tween);
+                              return SlideTransition(
+                                position: offsetAnimation,
+                                child: child,
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8.0),
+                          border: Border.all(color: AppColors.thickEdges),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _selectedCity,
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_drop_down,
+                              color: AppColors.textSecondary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -258,7 +344,6 @@ class _sellPageState extends State<sellPage> {
                           borderRadius: BorderRadius.circular(8.0),
                           borderSide: BorderSide(color: AppColors.thickEdges),
                         ),
-
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.0),
                           borderSide: BorderSide(color: AppColors.thickEdges),
@@ -300,13 +385,12 @@ class _sellPageState extends State<sellPage> {
                       maxLines: null,
                       decoration: InputDecoration(
                         hintText:
-                            'Enter all releveant information about ur product',
+                            'Enter all relevant information about your product',
                         fillColor: Colors.black,
                         errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.0),
                           borderSide: BorderSide(color: AppColors.thickEdges),
                         ),
-
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.0),
                           borderSide: BorderSide(color: AppColors.thickEdges),
@@ -318,7 +402,7 @@ class _sellPageState extends State<sellPage> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter the prodcut\'s details';
+                          return 'Please enter the product\'s details';
                         }
                         return null;
                       },
@@ -353,7 +437,7 @@ class _sellPageState extends State<sellPage> {
                             category: dropdownValue,
                             sellerProfile:
                                 'assets/images/profiles/Profile_Main.png',
-                            sellerLocation: 'Alexandria, Egypt',
+                            sellerLocation: _selectedCity, // Use selected city
                           );
                           print(newProduct);
                           final _products =
@@ -383,6 +467,124 @@ class _sellPageState extends State<sellPage> {
         ),
       ),
       bottomNavigationBar: sellPageNav(),
+    );
+  }
+}
+
+// City Selection Page
+class CitySelectionPage extends StatefulWidget {
+  final Function(String) onCitySelected;
+
+  const CitySelectionPage({super.key, required this.onCitySelected});
+
+  @override
+  State<CitySelectionPage> createState() => _CitySelectionPageState();
+}
+
+class _CitySelectionPageState extends State<CitySelectionPage> {
+  final TextEditingController _searchController = TextEditingController();
+  List<String> _allCities = [
+    'Alexandria, Egypt',
+    'Cairo, Egypt',
+    'Giza, Egypt',
+    'Luxor, Egypt',
+    'Aswan, Egypt',
+    'Hurghada, Egypt',
+    'Sharm El Sheikh, Egypt',
+    'Mansoura, Egypt',
+    'Tanta, Egypt',
+    'Port Said, Egypt',
+    'Suez, Egypt',
+    'Ismailia, Egypt',
+    'Fayoum, Egypt',
+    'Minya, Egypt',
+    'Assiut, Egypt',
+  ];
+  List<String> _filteredCities = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredCities = _allCities;
+    _searchController.addListener(_filterCities);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterCities() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredCities =
+          _allCities
+              .where((city) => city.toLowerCase().contains(query))
+              .toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Select City',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.textSecondary),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search for a city',
+                prefixIcon: Icon(Icons.search, color: AppColors.textSecondary),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide(color: AppColors.primary),
+                ),
+              ),
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _filteredCities.length,
+              itemBuilder: (context, index) {
+                final city = _filteredCities[index];
+                return ListTile(
+                  title: Text(
+                    city,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  onTap: () {
+                    widget.onCitySelected(city);
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -419,7 +621,6 @@ class sellPageNav extends StatelessWidget {
                   'Home',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-
                     color: AppColors.secondary,
                     fontSize: 14,
                   ),
@@ -427,7 +628,6 @@ class sellPageNav extends StatelessWidget {
               ],
             ),
           ),
-
           InkWell(
             onTap: () {
               Navigator.pushReplacementNamed(
@@ -471,7 +671,6 @@ class sellPageNav extends StatelessWidget {
                 'Sell',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-
                   color: AppColors.primary,
                   fontSize: 14,
                 ),
@@ -488,7 +687,6 @@ class sellPageNav extends StatelessWidget {
               children: [
                 SvgPicture.asset(
                   'assets/icons/Light_Bot.svg',
-
                   color: AppColors.secondary,
                   width: 32.0,
                   height: 32.0,
@@ -497,7 +695,6 @@ class sellPageNav extends StatelessWidget {
                   'Bots',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-
                     color: AppColors.secondary,
                     fontSize: 14,
                   ),
