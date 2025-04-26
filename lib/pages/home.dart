@@ -751,34 +751,6 @@ class _productsSliderState extends State<productsSlider> {
     });
   }
 
-  Future<void> _addProduct() async {
-    final name = 'hii';
-    final seller = 'hii';
-    final price = 'hi';
-    final details = 'hi';
-    final category = 'category';
-    final imagePath = 'assets/images/Monitor_Item.png';
-    final sellerProfile = 'assets/images/Monitor_Item.png';
-    final sellerLocation = 'assets/images/Monitor_Item.png';
-
-    if (name.isNotEmpty && seller.isNotEmpty) {
-      final newProduct = Product(
-        name: name,
-        seller: seller,
-        price: price,
-        details: details,
-        imagePath: imagePath,
-        category: category,
-        sellerProfile: sellerProfile,
-        sellerLocation: sellerLocation,
-      );
-      setState(() {
-        _products.add(newProduct);
-      });
-      await _productService.writeProducts(_products, File('path'));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final user = ModalRoute.of(context)!.settings.arguments as User;
