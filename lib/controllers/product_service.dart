@@ -33,7 +33,7 @@ class ProductService {
       final path = await _localPath;
       products[0].imagePath = "$path/${products[0].id}.png";
       final jsonString = productsToJson(products);
-      final im = await image.copy(products[0].imagePath);
+      await image.copy(products[0].imagePath);
       await file.writeAsString(jsonString);
     } catch (e) {
       print('Error writing products: $e');

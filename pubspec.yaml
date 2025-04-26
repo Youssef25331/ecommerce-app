@@ -42,6 +42,8 @@ dependencies:
   dart_openai: ^5.1.0
   image_picker: ^1.1.2
   dropdown_search: ^6.0.2
+  speech_to_text: ^7.0.0
+  flutter_tts: ^4.0.0
 
 dev_dependencies:
   flutter_test:

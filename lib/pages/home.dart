@@ -576,7 +576,9 @@ class mainMenuNav extends StatelessWidget {
             ),
           ),
           InkWell(
-            onTap: () {},
+            onTap: () {
+              Navigator.pushReplacementNamed(context, '/sell', arguments: user);
+            },
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

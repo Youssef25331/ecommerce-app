@@ -194,6 +194,8 @@ class _sellPageState extends State<sellPage> {
                                         ? "Change Image"
                                         : 'Upload Image',
                                     style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10,
                                       color: AppColors.textSecondary,
                                     ),
                                   ),
