@@ -1,26 +1,19 @@
-import 'dart:io';
+import 'dart:convert';
 import 'package:college_ecommerce_app/models/product.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 
 class ProductService {
-  Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
-  }
-
-  Future<File> get _localFile async {
-    final path = await _localPath;
-    return File('$path/products.json');
-  }
+  static const String _baseUrl = 'http://localhost:8181';
 
   Future<List<Product>> readProducts() async {
     try {
-      final file = await _localFile;
-      if (!await file.exists()) {
+      final response = await http.get(Uri.parse('$_baseUrl/products'));
+      if (response.statusCode == 200) {
+        return productsFromJson(response.body);
+      } else {
+        print('Failed to read products: ${response.statusCode}');
         return [];
       }
-      final contents = await file.readAsString();
-      return productsFromJson(contents);
     } catch (e) {
       print('Error reading products: $e');
       return [];
@@ -29,12 +22,13 @@ class ProductService {
 
   Future<void> writeProducts(List<Product> products, File image) async {
     try {
-      final file = await _localFile;
-      final path = await _localPath;
-      products[0].imagePath = "$path/${products[0].id}.png";
-      final jsonString = productsToJson(products);
-      await image.copy(products[0].imagePath);
-      await file.writeAsString(jsonString);
+      var request = http.MultipartRequest('POST', Uri.parse('$_baseUrl/products'));
+      request.files.add(await http.MultipartFile.fromPath('image', image.path));
+      request.fields['products'] = productsToJson(products);
+      final response = await request.send();
+      if (response.statusCode != 200) {
+        print('Failed to write products: ${response.statusCode}');
+      }
     } catch (e) {
       print('Error writing products: $e');
     }
@@ -42,9 +36,12 @@ class ProductService {
 
   Future<void> clearProducts() async {
     try {
-      final file = await _localFile;
-      await file.writeAsString('[]');
-      print('Cleared products.json');
+      final response = await http.delete(Uri.parse('$_baseUrl/products'));
+      if (response.statusCode == 200) {
+        print('Cleared products');
+      } else {
+        print('Failed to clear products: ${response.statusCode}');
+      }
     } catch (e) {
       print('Error clearing products: $e');
     }
@@ -52,8 +49,13 @@ class ProductService {
 
   Future<Product?> getProductById(String id) async {
     try {
-      final products = await readProducts();
-      return products.firstWhere((product) => product.id == id);
+      final response = await http.get(Uri.parse('$_baseUrl/products/$id'));
+      if (response.statusCode == 200) {
+        return productsFromJson(response.body).first;
+      } else {
+        print('Failed to get product by id: ${response.statusCode}');
+        return null;
+      }
     } catch (e) {
       print('Error getting product by id: $e');
       return null;
@@ -62,16 +64,18 @@ class ProductService {
 
   Future<void> fillProducts() async {
     try {
-      final file = await _localFile;
-      await file.writeAsString('''[
+      final response = await http.post(
+        Uri.parse('$_baseUrl/products'),
+        headers: {'Content-Type': 'application/json'},
+        body: '''[
   {
     "id": "62cbef22-b1dc-462b-93f8-365423648f7c",
     "name": "Sports Jacket",
     "seller": "ActiveWear Co.",
     "price": "EGP 850",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-    "imagePath": "assets/images/products/sports_1.png",
-    "sellerProfile": "assets/images/profiles/profile_7.png",
+    "imagePath": "http://localhost:8181/images/sports_1.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_7.png",
     "sellerLocation": "Cairo, Egypt",
     "category": "sports"
   },
@@ -81,8 +85,8 @@ class ProductService {
     "seller": "TechTrend",
     "price": "EGP 1200",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco.",
-    "imagePath": "assets/images/products/electronics_3.png",
-    "sellerProfile": "assets/images/profiles/profile_2.png",
+    "imagePath": "http://localhost:8181/images/electronics_3.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_2.png",
     "sellerLocation": "Alexandria, Egypt",
     "category": "electronics"
   },
@@ -92,8 +96,8 @@ class ProductService {
     "seller": "StudyBuddy",
     "price": "EGP 450",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit in voluptate velit.",
-    "imagePath": "assets/images/products/school_4.png",
-    "sellerProfile": "assets/images/profiles/profile_10.png",
+    "imagePath": "http://localhost:8181/images/school_4.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_10.png",
     "sellerLocation": "Giza, Egypt",
     "category": "school"
   },
@@ -103,8 +107,8 @@ class ProductService {
     "seller": "FashionHub",
     "price": "EGP 600",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Excepteur sint occaecat cupidatat non proident.",
-    "imagePath": "assets/images/products/apparel_2.png",
-    "sellerProfile": "assets/images/profiles/profile_5.png",
+    "imagePath": "http://localhost:8181/images/apparel_2.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_5.png",
     "sellerLocation": "Mansoura, Egypt",
     "category": "apparel"
   },
@@ -114,8 +118,8 @@ class ProductService {
     "seller": "FitGear",
     "price": "EGP 950",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sunt in culpa qui officia deserunt mollit anim id est laborum.",
-    "imagePath": "assets/images/products/sports_5.png",
-    "sellerProfile": "assets/images/profiles/profile_12.png",
+    "imagePath": "http://localhost:8181/images/sports_5.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_12.png",
     "sellerLocation": "Luxor, Egypt",
     "category": "sports"
   },
@@ -125,8 +129,8 @@ class ProductService {
     "seller": "GadgetZone",
     "price": "EGP 1800",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis ipsum suspendisse ultrices gravida dictum fusce.",
-    "imagePath": "assets/images/products/electronics_1.png",
-    "sellerProfile": "assets/images/profiles/profile_3.png",
+    "imagePath": "http://localhost:8181/images/electronics_1.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_3.png",
     "sellerLocation": "Asyut, Egypt",
     "category": "electronics"
   },
@@ -136,8 +140,8 @@ class ProductService {
     "seller": "LearnEasy",
     "price": "EGP 200",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Temporibus autem quibusdam et aut officiis debitis aut.",
-    "imagePath": "assets/images/products/school_2.png",
-    "sellerProfile": "assets/images/profiles/profile_8.png",
+    "imagePath": "http://localhost:8181/images/school_2.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_8.png",
     "sellerLocation": "Suez, Egypt",
     "category": "school"
   },
@@ -147,8 +151,8 @@ class ProductService {
     "seller": "StyleVibe",
     "price": "EGP 700",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Accusantium doloremque laudantium, totam rem aperiam.",
-    "imagePath": "assets/images/products/apparel_4.png",
-    "sellerProfile": "assets/images/profiles/profile_1.png",
+    "imagePath": "http://localhost:8181/images/apparel_4.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_1.png",
     "sellerLocation": "Port Said, Egypt",
     "category": "apparel"
   },
@@ -158,8 +162,8 @@ class ProductService {
     "seller": "SportyShop",
     "price": "EGP 400",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eaque ipsa quae ab illo inventore veritatis et quasi.",
-    "imagePath": "assets/images/products/sports_3.png",
-    "sellerProfile": "assets/images/profiles/profile_6.png",
+    "imagePath": "http://localhost:8181/images/sports_3.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_6.png",
     "sellerLocation": "Aswan, Egypt",
     "category": "sports"
   },
@@ -169,8 +173,8 @@ class ProductService {
     "seller": "TechBit",
     "price": "EGP 150",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Neque porro quisquam est, qui dolorem ipsum quia dolor.",
-    "imagePath": "assets/images/products/electronics_5.png",
-    "sellerProfile": "assets/images/profiles/profile_9.png",
+    "imagePath": "http://localhost:8181/images/electronics_5.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_9.png",
     "sellerLocation": "Ismailia, Egypt",
     "category": "electronics"
   },
@@ -180,8 +184,8 @@ class ProductService {
     "seller": "AthleteZone",
     "price": "EGP 650",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit.",
-    "imagePath": "assets/images/products/sports_2.png",
-    "sellerProfile": "assets/images/profiles/profile_4.png",
+    "imagePath": "http://localhost:8181/images/sports_2.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_4.png",
     "sellerLocation": "Damietta, Egypt",
     "category": "sports"
   },
@@ -191,8 +195,8 @@ class ProductService {
     "seller": "TechTrove",
     "price": "EGP 300",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nemo enim ipsam voluptatem quia voluptas sit aspernatur.",
-    "imagePath": "assets/images/products/electronics_4.png",
-    "sellerProfile": "assets/images/profiles/profile_11.png",
+    "imagePath": "http://localhost:8181/images/electronics_4.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_11.png",
     "sellerLocation": "Fayoum, Egypt",
     "category": "electronics"
   },
@@ -202,8 +206,8 @@ class ProductService {
     "seller": "SchoolSmart",
     "price": "EGP 100",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. At vero eos et accusamus et iusto odio dignissimos.",
-    "imagePath": "assets/images/products/school_3.png",
-    "sellerProfile": "assets/images/profiles/profile_3.png",
+    "imagePath": "http://localhost:8181/images/school_3.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_3.png",
     "sellerLocation": "Beni Suef, Egypt",
     "category": "school"
   },
@@ -213,8 +217,8 @@ class ProductService {
     "seller": "TrendyWear",
     "price": "EGP 800",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam libero tempore, cum soluta nobis est eligendi.",
-    "imagePath": "assets/images/products/apparel_1.png",
-    "sellerProfile": "assets/images/profiles/profile_8.png",
+    "imagePath": "http://localhost:8181/images/apparel_1.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_8.png",
     "sellerLocation": "Minya, Egypt",
     "category": "apparel"
   },
@@ -224,8 +228,8 @@ class ProductService {
     "seller": "SportTech",
     "price": "EGP 1500",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quia non numquam eius modi tempora incidunt ut labore.",
-    "imagePath": "assets/images/products/sports_4.png",
-    "sellerProfile": "assets/images/profiles/profile_1.png",
+    "imagePath": "http://localhost:8181/images/sports_4.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_1.png",
     "sellerLocation": "Sohag, Egypt",
     "category": "sports"
   },
@@ -235,8 +239,8 @@ class ProductService {
     "seller": "GadgetHub",
     "price": "EGP 900",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Et harum quidem rerum facilis est et expedita distinctio.",
-    "imagePath": "assets/images/products/electronics_2.png",
-    "sellerProfile": "assets/images/profiles/profile_6.png",
+    "imagePath": "http://localhost:8181/images/electronics_2.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_6.png",
     "sellerLocation": "Qena, Egypt",
     "category": "electronics"
   },
@@ -246,8 +250,8 @@ class ProductService {
     "seller": "EduTools",
     "price": "EGP 150",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Neque porro quisquam est, qui dolorem ipsum quia dolor.",
-    "imagePath": "assets/images/products/school_1.png",
-    "sellerProfile": "assets/images/profiles/profile_9.png",
+    "imagePath": "http://localhost:8181/images/school_1.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_9.png",
     "sellerLocation": "Tanta, Egypt",
     "category": "school"
   },
@@ -257,8 +261,8 @@ class ProductService {
     "seller": "FashionFit",
     "price": "EGP 1000",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit.",
-    "imagePath": "assets/images/products/apparel_3.png",
-    "sellerProfile": "assets/images/profiles/profile_4.png",
+    "imagePath": "http://localhost:8181/images/apparel_3.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_4.png",
     "sellerLocation": "Zagazig, Egypt",
     "category": "apparel"
   },
@@ -268,8 +272,8 @@ class ProductService {
     "seller": "FitLife",
     "price": "EGP 500",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. At vero eos et accusamus et iusto odio dignissimos.",
-    "imagePath": "assets/images/products/sports_1.png",
-    "sellerProfile": "assets/images/profiles/profile_12.png",
+    "imagePath": "http://localhost:8181/images/sports_1.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_12.png",
     "sellerLocation": "Kafr El Sheikh, Egypt",
     "category": "sports"
   },
@@ -279,8 +283,8 @@ class ProductService {
     "seller": "SoundWave",
     "price": "EGP 2000",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam libero tempore, cum soluta nobis est eligendi.",
-    "imagePath": "assets/images/products/electronics_1.png",
-    "sellerProfile": "assets/images/profiles/profile_7.png",
+    "imagePath": "http://localhost:8181/images/electronics_1.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_7.png",
     "sellerLocation": "Damanhur, Egypt",
     "category": "electronics"
   },
@@ -290,8 +294,8 @@ class ProductService {
     "seller": "CreativeKids",
     "price": "EGP 250",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quia non numquam eius modi tempora incidunt ut labore.",
-    "imagePath": "assets/images/products/school_5.png",
-    "sellerProfile": "assets/images/profiles/profile_2.png",
+    "imagePath": "http://localhost:8181/images/school_5.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_2.png",
     "sellerLocation": "Banha, Egypt",
     "category": "school"
   },
@@ -301,8 +305,8 @@ class ProductService {
     "seller": "CoolThreads",
     "price": "EGP 400",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Et harum quidem rerum facilis est et expedita distinctio.",
-    "imagePath": "assets/images/products/apparel_5.png",
-    "sellerProfile": "assets/images/profiles/profile_10.png",
+    "imagePath": "http://localhost:8181/images/apparel_5.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_10.png",
     "sellerLocation": "Shibin El Kom, Egypt",
     "category": "apparel"
   },
@@ -312,8 +316,8 @@ class ProductService {
     "seller": "SportsStar",
     "price": "EGP 600",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Neque porro quisquam est, qui dolorem ipsum quia dolor.",
-    "imagePath": "assets/images/products/sports_2.png",
-    "sellerProfile": "assets/images/profiles/profile_5.png",
+    "imagePath": "http://localhost:8181/images/sports_2.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_5.png",
     "sellerLocation": "Hurghada, Egypt",
     "category": "sports"
   },
@@ -323,8 +327,8 @@ class ProductService {
     "seller": "TechEase",
     "price": "EGP 200",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit.",
-    "imagePath": "assets/images/products/electronics_4.png",
-    "sellerProfile": "assets/images/profiles/profile_3.png",
+    "imagePath": "http://localhost:8181/images/electronics_4.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_3.png",
     "sellerLocation": "Arish, Egypt",
     "category": "electronics"
   },
@@ -334,8 +338,8 @@ class ProductService {
     "seller": "StudyTools",
     "price": "EGP 350",
     "details": "Lorem ipsum dour sit amet, consectetur adipiscing elit. At vero eos et accusamus et iusto odio dignissimos.",
-    "imagePath": "assets/images/products/school_3.png",
-    "sellerProfile": "assets/images/profiles/profile_8.png",
+    "imagePath": "http://localhost:8181/images/school_3.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_8.png",
     "sellerLocation": "Marsa Matruh, Egypt",
     "category": "school"
   },
@@ -345,8 +349,8 @@ class ProductService {
     "seller": "UrbanStyle",
     "price": "EGP 900",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam libero tempore, cum soluta nobis est eligendi.",
-    "imagePath": "assets/images/products/apparel_1.png",
-    "sellerProfile": "assets/images/profiles/profile_1.png",
+    "imagePath": "http://localhost:8181/images/apparel_1.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_1.png",
     "sellerLocation": "Assiut, Egypt",
     "category": "apparel"
   },
@@ -356,8 +360,8 @@ class ProductService {
     "seller": "PlayHard",
     "price": "EGP 1200",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quia non numquam eius modi tempora incidunt ut labore.",
-    "imagePath": "assets/images/products/sports_4.png",
-    "sellerProfile": "assets/images/profiles/profile_6.png",
+    "imagePath": "http://localhost:8181/images/sports_4.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_6.png",
     "sellerLocation": "Luxor, Egypt",
     "category": "sports"
   },
@@ -367,8 +371,8 @@ class ProductService {
     "seller": "TechGear",
     "price": "EGP 800",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Et harum quidem rerum facilis est et expedita distinctio.",
-    "imagePath": "assets/images/products/electronics_3.png",
-    "sellerProfile": "assets/images/profiles/profile_9.png",
+    "imagePath": "http://localhost:8181/images/electronics_3.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_9.png",
     "sellerLocation": "Cairo, Egypt",
     "category": "electronics"
   },
@@ -378,8 +382,8 @@ class ProductService {
     "seller": "EduPlan",
     "price": "EGP 300",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Neque porro quisquam est, qui dolorem ipsum quia dolor.",
-    "imagePath": "assets/images/products/school_2.png",
-    "sellerProfile": "assets/images/profiles/profile_4.png",
+    "imagePath": "http://localhost:8181/images/school_2.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_4.png",
     "sellerLocation": "Alexandria, Egypt",
     "category": "school"
   },
@@ -389,8 +393,8 @@ class ProductService {
     "seller": "ChicWear",
     "price": "EGP 750",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit.",
-    "imagePath": "assets/images/products/apparel_2.png",
-    "sellerProfile": "assets/images/profiles/profile_12.png",
+    "imagePath": "http://localhost:8181/images/apparel_2.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_12.png",
     "sellerLocation": "Giza, Egypt",
     "category": "apparel"
   },
@@ -400,8 +404,8 @@ class ProductService {
     "seller": "FitEquip",
     "price": "EGP 700",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. At vero eos et accusamus et iusto odio dignissimos.",
-    "imagePath": "assets/images/products/sports_5.png",
-    "sellerProfile": "assets/images/profiles/profile_7.png",
+    "imagePath": "http://localhost:8181/images/sports_5.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_7.png",
     "sellerLocation": "Mansoura, Egypt",
     "category": "sports"
   },
@@ -411,8 +415,8 @@ class ProductService {
     "seller": "TechVision",
     "price": "EGP 1100",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam libero tempore, cum soluta nobis est eligendi.",
-    "imagePath": "assets/images/products/electronics_2.png",
-    "sellerProfile": "assets/images/profiles/profile_2.png",
+    "imagePath": "http://localhost:8181/images/electronics_2.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_2.png",
     "sellerLocation": "Suez, Egypt",
     "category": "electronics"
   },
@@ -422,8 +426,8 @@ class ProductService {
     "seller": "StudyAid",
     "price": "EGP 120",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quia non numquam eius modi tempora incidunt ut labore.",
-    "imagePath": "assets/images/products/school_1.png",
-    "sellerProfile": "assets/images/profiles/profile_10.png",
+    "imagePath": "http://localhost:8181/images/school_1.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_10.png",
     "sellerLocation": "Port Said, Egypt",
     "category": "school"
   },
@@ -433,8 +437,8 @@ class ProductService {
     "seller": "TrendSet",
     "price": "EGP 250",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Et harum quidem rerum facilis est et expedita distinctio.",
-    "imagePath": "assets/images/products/apparel_3.png",
-    "sellerProfile": "assets/images/profiles/profile_5.png",
+    "imagePath": "http://localhost:8181/images/apparel_3.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_5.png",
     "sellerLocation": "Aswan, Egypt",
     "category": "apparel"
   },
@@ -444,8 +448,8 @@ class ProductService {
     "seller": "GameOn",
     "price": "EGP 450",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Neque porro quisquam est, qui dolorem ipsum quia dolor.",
-    "imagePath": "assets/images/products/sports_3.png",
-    "sellerProfile": "assets/images/profiles/profile_3.png",
+    "imagePath": "http://localhost:8181/images/sports_3.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_3.png",
     "sellerLocation": "Ismailia, Egypt",
     "category": "sports"
   },
@@ -455,8 +459,8 @@ class ProductService {
     "seller": "TechConnect",
     "price": "EGP 400",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit.",
-    "imagePath": "assets/images/products/electronics_5.png",
-    "sellerProfile": "assets/images/profiles/profile_8.png",
+    "imagePath": "http://localhost:8181/images/electronics_5.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_8.png",
     "sellerLocation": "Damietta, Egypt",
     "category": "electronics"
   },
@@ -466,8 +470,8 @@ class ProductService {
     "seller": "BookWorm",
     "price": "EGP 500",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. At vero eos et accusamus et iusto odio dignissimos.",
-    "imagePath": "assets/images/products/school_4.png",
-    "sellerProfile": "assets/images/profiles/profile_1.png",
+    "imagePath": "http://localhost:8181/images/school_4.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_1.png",
     "sellerLocation": "Fayoum, Egypt",
     "category": "school"
   },
@@ -477,8 +481,8 @@ class ProductService {
     "seller": "ElegantWear",
     "price": "EGP 300",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam libero tempore, cum soluta nobis est eligendi.",
-    "imagePath": "assets/images/products/apparel_4.png",
-    "sellerProfile": "assets/images/profiles/profile_6.png",
+    "imagePath": "http://localhost:8181/images/apparel_4.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_6.png",
     "sellerLocation": "Beni Suef, Egypt",
     "category": "apparel"
   },
@@ -488,8 +492,8 @@ class ProductService {
     "seller": "ActiveGear",
     "price": "EGP 800",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quia non numquam eius modi tempora incidunt ut labore.",
-    "imagePath": "assets/images/products/sports_1.png",
-    "sellerProfile": "assets/images/profiles/profile_9.png",
+    "imagePath": "http://localhost:8181/images/sports_1.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_9.png",
     "sellerLocation": "Minya, Egypt",
     "category": "sports"
   },
@@ -499,8 +503,8 @@ class ProductService {
     "seller": "TechTrend",
     "price": "EGP 2500",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Et harum quidem rerum facilis est et expedita distinctio.",
-    "imagePath": "assets/images/products/electronics_1.png",
-    "sellerProfile": "assets/images/profiles/profile_4.png",
+    "imagePath": "http://localhost:8181/images/electronics_1.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_4.png",
     "sellerLocation": "Sohag, Egypt",
     "category": "electronics"
   },
@@ -510,8 +514,8 @@ class ProductService {
     "seller": "LearnFun",
     "price": "EGP 180",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Neque porro quisquam est, qui dolorem ipsum quia dolor.",
-    "imagePath": "assets/images/products/school_5.png",
-    "sellerProfile": "assets/images/profiles/profile_12.png",
+    "imagePath": "http://localhost:8181/images/school_5.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_12.png",
     "sellerLocation": "Qena, Egypt",
     "category": "school"
   },
@@ -521,8 +525,8 @@ class ProductService {
     "seller": "SmartWear",
     "price": "EGP 650",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit.",
-    "imagePath": "assets/images/products/apparel_5.png",
-    "sellerProfile": "assets/images/profiles/profile_7.png",
+    "imagePath": "http://localhost:8181/images/apparel_5.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_7.png",
     "sellerLocation": "Tanta, Egypt",
     "category": "apparel"
   },
@@ -532,8 +536,8 @@ class ProductService {
     "seller": "FitPulse",
     "price": "EGP 300",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. At vero eos et accusamus et iusto odio dignissimos.",
-    "imagePath": "assets/images/products/sports_2.png",
-    "sellerProfile": "assets/images/profiles/profile_2.png",
+    "imagePath": "http://localhost:8181/images/sports_2.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_2.png",
     "sellerLocation": "Zagazig, Egypt",
     "category": "sports"
   },
@@ -543,8 +547,8 @@ class ProductService {
     "seller": "SoundTech",
     "price": "EGP 1500",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam libero tempore, cum soluta nobis est eligendi.",
-    "imagePath": "assets/images/products/electronics_4.png",
-    "sellerProfile": "assets/images/profiles/profile_10.png",
+    "imagePath": "http://localhost:8181/images/electronics_4.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_10.png",
     "sellerLocation": "Kafr El Sheikh, Egypt",
     "category": "electronics"
   },
@@ -554,8 +558,8 @@ class ProductService {
     "seller": "EduGear",
     "price": "EGP 80",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quia non numquam eius modi tempora incidunt ut labore.",
-    "imagePath": "assets/images/products/school_3.png",
-    "sellerProfile": "assets/images/profiles/profile_5.png",
+    "imagePath": "http://localhost:8181/images/school_3.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_5.png",
     "sellerLocation": "Damanhur, Egypt",
     "category": "school"
   },
@@ -565,13 +569,18 @@ class ProductService {
     "seller": "CoolShades",
     "price": "EGP 500",
     "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Et harum quidem rerum facilis est et expedita distinctio.",
-    "imagePath": "assets/images/products/apparel_1.png",
-    "sellerProfile": "assets/images/profiles/profile_3.png",
+    "imagePath": "http://localhost:8181/images/apparel_1.png",
+    "sellerProfile": "http://localhost:8181/profiles/profile_3.png",
     "sellerLocation": "Banha, Egypt",
     "category": "apparel"
   }
-]''', flush: true);
-      print('Filled products.json');
+]''',
+      );
+      if (response.statusCode == 200) {
+        print('Filled products');
+      } else {
+        print('Failed to fill products: ${response.statusCode}');
+      }
     } catch (e) {
       print('Error filling products: $e');
     }

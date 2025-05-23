@@ -1,27 +1,21 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:college_ecommerce_app/models/user.dart';
+import 'package:http/http.dart' as http;
 
 class UserService {
-  Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
-  }
-
-  Future<File> get _localFile async {
-    final path = await _localPath;
-    return File('$path/users.json');
-  }
+  static const String _baseUrl = 'http://localhost:8181';
 
   Future<List<User>> readUsers() async {
     try {
-      final file = await _localFile;
-      if (!await file.exists()) {
+      final response = await http.get(Uri.parse('$_baseUrl/users'));
+      if (response.statusCode == 200) {
+        return usersFromJson(response.body);
+      } else {
+        if (kDebugMode) {
+          print('Failed to read users: ${response.statusCode}');
+        }
         return [];
       }
-      final contents = await file.readAsString();
-      return usersFromJson(contents);
     } catch (e) {
       if (kDebugMode) {
         print('Error reading users: $e');
@@ -32,9 +26,16 @@ class UserService {
 
   Future<void> writeUsers(List<User> users) async {
     try {
-      final file = await _localFile;
-      final jsonString = usersToJson(users);
-      await file.writeAsString(jsonString);
+      final response = await http.post(
+        Uri.parse('$_baseUrl/users'),
+        headers: {'Content-Type': 'application/json'},
+        body: usersToJson(users),
+      );
+      if (response.statusCode != 200) {
+        if (kDebugMode) {
+          print('Failed to write users: ${response.statusCode}');
+        }
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error writing users: $e');
@@ -44,8 +45,12 @@ class UserService {
 
   Future<void> clearUsers() async {
     try {
-      final file = await _localFile;
-      await file.writeAsString('[]');
+      final response = await http.delete(Uri.parse('$_baseUrl/users'));
+      if (response.statusCode != 200) {
+        if (kDebugMode) {
+          print('Failed to clear users: ${response.statusCode}');
+        }
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error clearing users: $e');
