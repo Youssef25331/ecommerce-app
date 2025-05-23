@@ -1,59 +1,48 @@
 import 'dart:io';
-
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:college_ecommerce_app/constants/app_colors.dart';
+import 'package:college_ecommerce_app/controllers/product_service.dart';
+import 'package:college_ecommerce_app/models/product.dart';
 import 'package:college_ecommerce_app/models/user.dart';
+import 'package:college_ecommerce_app/viewmodels/user_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:college_ecommerce_app/models/product.dart';
-import 'package:college_ecommerce_app/controllers/product_service.dart';
+import 'package:provider/provider.dart';
 
-class homePage extends StatefulWidget {
-  const homePage({super.key});
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
-  @override
-  State<homePage> createState() => _homePageState();
-}
-
-class _homePageState extends State<homePage> {
   @override
   Widget build(BuildContext context) {
-    final user = ModalRoute.of(context)!.settings.arguments as User;
+    final userViewModel = Provider.of<UserViewModel>(context);
+    final user = userViewModel.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 20,
-        title: AddressSelection(), // Replaced with interactive widget
+        title: const AddressSelection(),
         actions: [
           InkWell(
             borderRadius: BorderRadius.circular(30),
             onTap: () {
-              Navigator.pushNamed(
-                context,
-                '/wishlist',
-                arguments: [user, false],
-              );
+              Navigator.pushNamed(context, '/wishlist', arguments: false);
             },
-            child: Ink(
-              child: SvgPicture.asset(
-                'assets/icons/Light_Cart.svg',
-                height: 28.0,
-                width: 28.0,
-                color: AppColors.textSecondary,
-              ),
+            child: SvgPicture.asset(
+              'assets/icons/Light_Cart.svg',
+              height: 28.0,
+              width: 28.0,
+              color: AppColors.textSecondary,
             ),
           ),
-          SizedBox(width: 20),
+          const SizedBox(width: 20),
         ],
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(65),
+          preferredSize: const Size.fromHeight(65),
           child: Column(
             children: [
               Container(
-                margin: EdgeInsets.only(left: 20, right: 20),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
+                margin: const EdgeInsets.only(left: 20, right: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(width: 1, color: AppColors.edges),
@@ -65,23 +54,23 @@ class _homePageState extends State<homePage> {
                       height: 20.0,
                       width: 20.0,
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     SizedBox(
                       width: 150,
                       height: 32,
                       child: TextField(
                         textInputAction: TextInputAction.search,
-                        style: TextStyle(fontSize: 14),
+                        style: const TextStyle(fontSize: 14),
                         onSubmitted: (value) {
                           if (value.isNotEmpty) {
                             Navigator.pushNamed(
                               context,
                               '/search',
-                              arguments: [value, user, false],
+                              arguments: [value, false],
                             );
                           }
                         },
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           hintText: 'Search here...',
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.only(top: 6),
@@ -92,7 +81,7 @@ class _homePageState extends State<homePage> {
                   ],
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -106,7 +95,7 @@ class _homePageState extends State<homePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Category', style: TextStyle(fontSize: 14)),
+                  const Text('Category', style: TextStyle(fontSize: 14)),
                   Padding(
                     padding: const EdgeInsets.only(top: 13),
                     child: Padding(
@@ -120,7 +109,7 @@ class _homePageState extends State<homePage> {
                               Navigator.pushNamed(
                                 context,
                                 '/search',
-                                arguments: ['apparel', user, true],
+                                arguments: ['apparel', true],
                               );
                             },
                             child: Column(
@@ -130,7 +119,7 @@ class _homePageState extends State<homePage> {
                                   width: 40,
                                   height: 40,
                                   decoration: BoxDecoration(
-                                    color: Color.fromARGB(255, 223, 241, 255),
+                                    color: const Color.fromARGB(255, 223, 241, 255),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Center(
@@ -141,7 +130,7 @@ class _homePageState extends State<homePage> {
                                     ),
                                   ),
                                 ),
-                                Text('Apparel', style: TextStyle(fontSize: 12)),
+                                const Text('Apparel', style: TextStyle(fontSize: 12)),
                               ],
                             ),
                           ),
@@ -151,7 +140,7 @@ class _homePageState extends State<homePage> {
                               Navigator.pushNamed(
                                 context,
                                 '/search',
-                                arguments: ['school', user, true],
+                                arguments: ['school', true],
                               );
                             },
                             child: Column(
@@ -161,7 +150,7 @@ class _homePageState extends State<homePage> {
                                   width: 40,
                                   height: 40,
                                   decoration: BoxDecoration(
-                                    color: Color(0xFFDFFAFF),
+                                    color: const Color(0xFFDFFAFF),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Center(
@@ -172,7 +161,7 @@ class _homePageState extends State<homePage> {
                                     ),
                                   ),
                                 ),
-                                Text('School', style: TextStyle(fontSize: 12)),
+                                const Text('School', style: TextStyle(fontSize: 12)),
                               ],
                             ),
                           ),
@@ -182,7 +171,7 @@ class _homePageState extends State<homePage> {
                               Navigator.pushNamed(
                                 context,
                                 '/search',
-                                arguments: ['sports', user, true],
+                                arguments: ['sports', true],
                               );
                             },
                             child: Column(
@@ -192,7 +181,7 @@ class _homePageState extends State<homePage> {
                                   width: 40,
                                   height: 40,
                                   decoration: BoxDecoration(
-                                    color: Color(0xFFFFEDDD),
+                                    color: const Color(0xFFFFEDDD),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Center(
@@ -203,7 +192,7 @@ class _homePageState extends State<homePage> {
                                     ),
                                   ),
                                 ),
-                                Text('Sports', style: TextStyle(fontSize: 12)),
+                                const Text('Sports', style: TextStyle(fontSize: 12)),
                               ],
                             ),
                           ),
@@ -213,7 +202,7 @@ class _homePageState extends State<homePage> {
                               Navigator.pushNamed(
                                 context,
                                 '/search',
-                                arguments: ['electronics', user, true],
+                                arguments: ['electronics', true],
                               );
                             },
                             child: Column(
@@ -223,7 +212,7 @@ class _homePageState extends State<homePage> {
                                   width: 40,
                                   height: 40,
                                   decoration: BoxDecoration(
-                                    color: Color(0xFFFFEEED),
+                                    color: const Color(0xFFFFEEED),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Center(
@@ -234,10 +223,7 @@ class _homePageState extends State<homePage> {
                                     ),
                                   ),
                                 ),
-                                Text(
-                                  'Electronics',
-                                  style: TextStyle(fontSize: 12),
-                                ),
+                                const Text('Electronics', style: TextStyle(fontSize: 12)),
                               ],
                             ),
                           ),
@@ -247,31 +233,19 @@ class _homePageState extends State<homePage> {
                               Navigator.push(
                                 context,
                                 PageRouteBuilder(
-                                  pageBuilder:
-                                      (
-                                        context,
-                                        animation,
-                                        secondaryAnimation,
-                                      ) => CategorySelectionPage(user: user),
+                                  pageBuilder: (context, animation, secondaryAnimation) =>
+                                      const CategorySelectionPage(),
                                   transitionsBuilder: (
                                     context,
                                     animation,
                                     secondaryAnimation,
                                     child,
                                   ) {
-                                    const begin = Offset(
-                                      1.0,
-                                      0.0,
-                                    ); // Slide from right
+                                    const begin = Offset(1.0, 0.0);
                                     const end = Offset.zero;
                                     const curve = Curves.easeInOut;
-                                    var tween = Tween(
-                                      begin: begin,
-                                      end: end,
-                                    ).chain(CurveTween(curve: curve));
-                                    var offsetAnimation = animation.drive(
-                                      tween,
-                                    );
+                                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                    var offsetAnimation = animation.drive(tween);
                                     return SlideTransition(
                                       position: offsetAnimation,
                                       child: child,
@@ -287,7 +261,7 @@ class _homePageState extends State<homePage> {
                                   width: 40,
                                   height: 40,
                                   decoration: BoxDecoration(
-                                    color: Color(0xFFE9FFF8),
+                                    color: const Color(0xFFE9FFF8),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Center(
@@ -298,7 +272,7 @@ class _homePageState extends State<homePage> {
                                     ),
                                   ),
                                 ),
-                                Text('All', style: TextStyle(fontSize: 12)),
+                                const Text('All', style: TextStyle(fontSize: 12)),
                               ],
                             ),
                           ),
@@ -309,11 +283,11 @@ class _homePageState extends State<homePage> {
                 ],
               ),
             ),
-            productsSlider(),
+            const ProductsSlider(),
           ],
         ),
       ),
-      bottomNavigationBar: mainMenuNav(),
+      bottomNavigationBar: const MainMenuNav(),
     );
   }
 
@@ -324,7 +298,7 @@ class _homePageState extends State<homePage> {
           decoration: BoxDecoration(
             boxShadow: [
               BoxShadow(
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
                 color: Colors.black.withAlpha(20),
                 blurRadius: 5,
                 spreadRadius: 0,
@@ -340,7 +314,7 @@ class _homePageState extends State<homePage> {
           decoration: BoxDecoration(
             boxShadow: [
               BoxShadow(
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
                 color: Colors.black.withAlpha(20),
                 blurRadius: 5,
                 spreadRadius: 0,
@@ -356,7 +330,7 @@ class _homePageState extends State<homePage> {
           decoration: BoxDecoration(
             boxShadow: [
               BoxShadow(
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
                 color: Colors.black.withAlpha(20),
                 blurRadius: 5,
                 spreadRadius: 0,
@@ -372,7 +346,7 @@ class _homePageState extends State<homePage> {
           decoration: BoxDecoration(
             boxShadow: [
               BoxShadow(
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
                 color: Colors.black.withAlpha(20),
                 blurRadius: 5,
                 spreadRadius: 0,
@@ -397,7 +371,6 @@ class _homePageState extends State<homePage> {
   }
 }
 
-// Address Selection Widget
 class AddressSelection extends StatefulWidget {
   const AddressSelection({super.key});
 
@@ -413,9 +386,9 @@ class _AddressSelectionState extends State<AddressSelection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Delivery Address',
-          style: TextStyle(color: const Color(0xFFC8C8CB), fontSize: 10),
+          style: TextStyle(color: Color(0xFFC8C8CB), fontSize: 10),
         ),
         FittedBox(
           child: InkWell(
@@ -423,28 +396,24 @@ class _AddressSelectionState extends State<AddressSelection> {
               Navigator.push(
                 context,
                 PageRouteBuilder(
-                  pageBuilder:
-                      (context, animation, secondaryAnimation) =>
-                          CitySelectionPage(
-                            onCitySelected: (city) {
-                              setState(() {
-                                _selectedCity = city;
-                              });
-                            },
-                          ),
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      CitySelectionPage(
+                        onCitySelected: (city) {
+                          setState(() {
+                            _selectedCity = city;
+                          });
+                        },
+                      ),
                   transitionsBuilder: (
                     context,
                     animation,
                     secondaryAnimation,
                     child,
                   ) {
-                    const begin = Offset(1.0, 0.0); // Slide from right
+                    const begin = Offset(1.0, 0.0);
                     const end = Offset.zero;
                     const curve = Curves.easeInOut;
-                    var tween = Tween(
-                      begin: begin,
-                      end: end,
-                    ).chain(CurveTween(curve: curve));
+                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
                     var offsetAnimation = animation.drive(tween);
                     return SlideTransition(
                       position: offsetAnimation,
@@ -494,7 +463,7 @@ class CitySelectionPage extends StatefulWidget {
 
 class _CitySelectionPageState extends State<CitySelectionPage> {
   final TextEditingController _searchController = TextEditingController();
-  List<String> _allCities = [
+  final List<String> _allCities = [
     'Alexandria, Egypt',
     'Cairo, Egypt',
     'Giza, Egypt',
@@ -529,10 +498,7 @@ class _CitySelectionPageState extends State<CitySelectionPage> {
   void _filterCities() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredCities =
-          _allCities
-              .where((city) => city.toLowerCase().contains(query))
-              .toList();
+      _filteredCities = _allCities.where((city) => city.toLowerCase().contains(query)).toList();
     });
   }
 
@@ -564,8 +530,8 @@ class _CitySelectionPageState extends State<CitySelectionPage> {
                   'assets/icons/Light_Search.svg',
                   color: AppColors.secondary,
                 ),
-                contentPadding: EdgeInsets.all(12),
-                prefixIconConstraints: BoxConstraints(maxHeight: 24),
+                contentPadding: const EdgeInsets.all(12),
+                prefixIconConstraints: const BoxConstraints(maxHeight: 24),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
@@ -595,7 +561,7 @@ class _CitySelectionPageState extends State<CitySelectionPage> {
                     widget.onCitySelected(city);
                     Navigator.pop(context);
                   },
-                );
+                ),
               },
             ),
           ),
@@ -605,12 +571,11 @@ class _CitySelectionPageState extends State<CitySelectionPage> {
   }
 }
 
-class mainMenuNav extends StatelessWidget {
-  const mainMenuNav({super.key});
+class MainMenuNav extends StatelessWidget {
+  const MainMenuNav({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final user = ModalRoute.of(context)!.settings.arguments as User;
     return Container(
       height: 120,
       decoration: BoxDecoration(
@@ -641,11 +606,7 @@ class mainMenuNav extends StatelessWidget {
           ),
           InkWell(
             onTap: () {
-              Navigator.pushReplacementNamed(
-                context,
-                '/wishlist',
-                arguments: [user, true],
-              );
+              Navigator.pushReplacementNamed(context, '/wishlist', arguments: true);
             },
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -669,7 +630,7 @@ class mainMenuNav extends StatelessWidget {
           ),
           InkWell(
             onTap: () {
-              Navigator.pushReplacementNamed(context, '/sell', arguments: user);
+              Navigator.pushReplacementNamed(context, '/sell');
             },
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -693,10 +654,9 @@ class mainMenuNav extends StatelessWidget {
           ),
           InkWell(
             onTap: () {
-              Navigator.pushReplacementNamed(context, '/bots', arguments: user);
+              Navigator.pushReplacementNamed(context, '/bots');
             },
             child: Column(
-              mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SvgPicture.asset(
@@ -722,16 +682,15 @@ class mainMenuNav extends StatelessWidget {
   }
 }
 
-class productsSlider extends StatefulWidget {
-  const productsSlider({super.key});
+class ProductsSlider extends StatefulWidget {
+  const ProductsSlider({super.key});
 
   @override
-  State<productsSlider> createState() => _productsSliderState();
+  State<ProductsSlider> createState() => _ProductsSliderState();
 }
 
-class _productsSliderState extends State<productsSlider> {
+class _ProductsSliderState extends State<ProductsSlider> {
   final ProductService _productService = ProductService();
-
   List<Product> _products = [];
 
   @override
@@ -753,10 +712,7 @@ class _productsSliderState extends State<productsSlider> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ModalRoute.of(context)!.settings.arguments as User;
-    bool isItemInList(String item) {
-      return user.wishlist.any((element) => element.contains(item));
-    }
+    final userViewModel = Provider.of<UserViewModel>(context);
 
     return Padding(
       padding: const EdgeInsets.only(top: 16, left: 20, right: 20),
@@ -780,22 +736,18 @@ class _productsSliderState extends State<productsSlider> {
                   Navigator.push(
                     context,
                     PageRouteBuilder(
-                      pageBuilder:
-                          (context, animation, secondaryAnimation) =>
-                              CategorySelectionPage(user: user),
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const CategorySelectionPage(),
                       transitionsBuilder: (
                         context,
                         animation,
                         secondaryAnimation,
                         child,
                       ) {
-                        const begin = Offset(1.0, 0.0); // Slide from right
+                        const begin = Offset(1.0, 0.0);
                         const end = Offset.zero;
                         const curve = Curves.easeInOut;
-                        var tween = Tween(
-                          begin: begin,
-                          end: end,
-                        ).chain(CurveTween(curve: curve));
+                        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
                         var offsetAnimation = animation.drive(tween);
                         return SlideTransition(
                           position: offsetAnimation,
@@ -811,10 +763,7 @@ class _productsSliderState extends State<productsSlider> {
                     border: Border.all(color: AppColors.edges),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 6,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     child: Row(
                       children: [
                         Text(
@@ -825,8 +774,7 @@ class _productsSliderState extends State<productsSlider> {
                             color: AppColors.textSecondary,
                           ),
                         ),
-
-                        SizedBox(width: 14),
+                        const SizedBox(width: 14),
                         SvgPicture.asset(
                           'assets/icons/Light_Filter.svg',
                           color: AppColors.textSecondary,
@@ -838,10 +786,9 @@ class _productsSliderState extends State<productsSlider> {
               ),
             ],
           ),
-          SizedBox(height: 13),
+          const SizedBox(height: 13),
           GridView.builder(
-            reverse: false,
-            physics: NeverScrollableScrollPhysics(),
+            physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               crossAxisSpacing: 8,
@@ -851,13 +798,13 @@ class _productsSliderState extends State<productsSlider> {
             shrinkWrap: true,
             itemCount: _products.length,
             itemBuilder: (_, index) {
-              bool _inWishlist = isItemInList(_products[index].id);
+              final isInWishlist = userViewModel.isItemInWishlist(_products[index].id);
               return InkWell(
                 onTap: () {
                   Navigator.pushNamed(
                     context,
                     '/details',
-                    arguments: [_products[index], user],
+                    arguments: _products[index],
                   );
                 },
                 child: Ink(
@@ -866,7 +813,7 @@ class _productsSliderState extends State<productsSlider> {
                     borderRadius: BorderRadius.circular(6),
                     boxShadow: [
                       BoxShadow(
-                        offset: Offset(0, 2),
+                        offset: const Offset(0, 2),
                         color: Colors.black.withAlpha(20),
                         blurRadius: 1,
                         spreadRadius: 0,
@@ -883,17 +830,9 @@ class _productsSliderState extends State<productsSlider> {
                         height: 120,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(6),
-                          child:
-                              _products[index].imagePath.split('/')[0] ==
-                                      "assets"
-                                  ? Image.asset(
-                                    _products[index].imagePath,
-                                    fit: BoxFit.cover,
-                                  )
-                                  : Image.file(
-                                    File(_products[index].imagePath),
-                                    fit: BoxFit.cover,
-                                  ),
+                          child: _products[index].imagePath.split('/')[0] == "assets"
+                              ? Image.asset(_products[index].imagePath, fit: BoxFit.cover)
+                              : Image.file(File(_products[index].imagePath), fit: BoxFit.cover),
                         ),
                       ),
                       Padding(
@@ -919,40 +858,26 @@ class _productsSliderState extends State<productsSlider> {
                                 fontSize: 14,
                               ),
                             ),
-                            SizedBox(height: 12),
+                            const SizedBox(height: 12),
                             Row(
                               children: [
-                                SizedBox(width: 7.5),
+                                const SizedBox(width: 7.5),
                                 InkWell(
                                   onTap: () {
-                                    _inWishlist
-                                        ? user.wishlist.remove(
-                                          _products[index].id,
-                                        )
-                                        : user.wishlist.add(
-                                          _products[index].id,
-                                        );
-                                    setState(() {
-                                      _inWishlist = !_inWishlist;
-                                    });
+                                    userViewModel.toggleWishlistItem(_products[index].id);
                                   },
                                   child: Ink(
                                     padding: EdgeInsets.symmetric(
-                                      horizontal: _inWishlist ? 41 : 22,
+                                      horizontal: isInWishlist ? 41 : 22,
                                       vertical: 8,
                                     ),
                                     decoration: BoxDecoration(
-                                      color:
-                                          _inWishlist
-                                              ? AppColors.secondary
-                                              : AppColors.primary,
+                                      color: isInWishlist ? AppColors.secondary : AppColors.primary,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
-                                      _inWishlist
-                                          ? 'Remove'
-                                          : 'Add to wishlist',
-                                      style: TextStyle(
+                                      isInWishlist ? 'Remove' : 'Add to wishlist',
+                                      style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 12,
                                       ),
@@ -977,9 +902,7 @@ class _productsSliderState extends State<productsSlider> {
 }
 
 class CategorySelectionPage extends StatelessWidget {
-  final User user;
-
-  const CategorySelectionPage({super.key, required this.user});
+  const CategorySelectionPage({super.key});
 
   final List<String> _allCategories = const [
     'Apparel',
@@ -1018,11 +941,11 @@ class CategorySelectionPage extends StatelessWidget {
               ),
             ),
             onTap: () {
-              Navigator.pop(context); // Close the selection page
+              Navigator.pop(context);
               Navigator.pushNamed(
                 context,
                 '/search',
-                arguments: [category.toLowerCase(), user, true],
+                arguments: [category.toLowerCase(), true],
               );
             },
           );
