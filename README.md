@@ -1,5 +1,3 @@
-![Animation - 1748004044417](https://github.com/user-attachments/assets/a2fb5c18-2322-4b98-bf11-1bcf0d2445d6)## College E-commerce App
-
 ### About
 The College E-commerce App is a Flutter-based mobile application designed for students to buy and sell products within a college community. Users can browse products across categories like sports, electronics, school supplies, and apparel, add items to their wishlist or cart, and sell their own products. The app features a user-friendly interface with secure authentication and an innovative **AI Chat Bot** page for interactive assistance, powered by a conversational AI to answer queries and guide users.
 
