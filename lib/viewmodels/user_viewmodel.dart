@@ -88,6 +88,23 @@ class UserViewModel extends ChangeNotifier {
     return _currentUser?.wishlist.contains(productId) ?? false;
   }
 
+  Future<void> toggleCartItem(String productId) async {
+    if (_currentUser == null) return;
+    final updatedCart = List<String>.from(_currentUser!.cart);
+    if (updatedCart.contains(productId)) {
+      updatedCart.remove(productId);
+    } else {
+      updatedCart.add(productId);
+    }
+    _currentUser = _currentUser!.copyWith(cart: updatedCart);
+    await _updateUser();
+    notifyListeners();
+  }
+
+  bool isItemInCart(String productId) {
+    return _currentUser?.cart.contains(productId) ?? false;
+  }
+
   Future<void> _updateUser() async {
     if (_currentUser == null) return;
     final index = _users.indexWhere((user) => user.email == _currentUser!.email);
